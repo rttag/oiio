@@ -141,9 +141,27 @@ PNGOutput::open (const std::string &name, const ImageSpec &userspec,
         return false;
     }
 
-    png_init_io (m_png, m_file);
-    png_set_compression_level (m_png, 6 /* medium speed vs size tradeoff */);
+	png_init_io (m_png, m_file);
+	
+	int compression_level = 6; /* medium speed vs size tradeoff */
 
+	// RTT MOD: CVI use incoming compression values
+	const ImageIOParameter *compParameter = m_spec.find_attribute ("CompressionQuality",TypeDesc::INT);
+	if (compParameter)
+	{
+		compression_level = *(const int *)compParameter->data();
+		compression_level = std::min( std::max( compression_level, 0 ), 9 ); // compression 0-9
+	}
+	png_set_compression_level (m_png, compression_level);
+
+	const ImageIOParameter *filterParameter = m_spec.find_attribute ("png:Filters",TypeDesc::INT);
+	if (filterParameter)
+	{
+		int filters = *(const int *)filterParameter->data();
+		filters &= PNG_ALL_FILTERS;
+		png_set_filter(m_png, 0, filters);
+	}
+	
     PNG_pvt::write_info (m_png, m_info, m_color_type, m_spec, m_pngtext);
 
     return true;

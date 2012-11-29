@@ -138,7 +138,7 @@ class SgiInput : public ImageInput {
 
 class SgiOutput : public ImageOutput {
  public:
-    SgiOutput () : m_fd(NULL) { }
+    SgiOutput () : m_fd(NULL), m_bFlipImage(true) { }
     virtual ~SgiOutput () { }
     virtual const char *format_name (void) const { return "sgi"; }
     virtual bool supports (const std::string &feature) const { return false; }
@@ -150,6 +150,7 @@ class SgiOutput : public ImageOutput {
  private:
     FILE *m_fd;
     std::string m_filename;
+	bool m_bFlipImage;
     std::vector<unsigned char> m_scratch;
 
     void init () {

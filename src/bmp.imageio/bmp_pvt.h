@@ -182,7 +182,9 @@ class BmpOutput : public ImageOutput {
     bmp_pvt::BmpFileHeader m_bmp_header;
     bmp_pvt::DibInformationHeader m_dib_header;
     fpos_t m_image_start;
+	bool m_bFlipImage;
     void init (void) {
+		m_bFlipImage = true;
         m_scanline_size = 0;
         m_fd = NULL;
         m_filename.clear ();

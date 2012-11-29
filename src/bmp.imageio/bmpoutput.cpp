@@ -81,6 +81,13 @@ BmpOutput::open (const std::string &name, const ImageSpec &spec,
     // Only support 8 bit channels for now.
     m_spec.set_format (TypeDesc::UINT8);
 
+	//	RTT MOD: CVI	this flips the image vertically, but slows down the image writing tremendously
+	const ImageIOParameter *flipParameter = m_spec.find_attribute("rtt:NoImageFlip",TypeDesc::INT);
+	if (flipParameter)
+	{
+		m_bFlipImage = (*static_cast<const int*>( flipParameter->data() ) == 1);
+	}
+
     return true;
 }
 
@@ -96,11 +103,15 @@ BmpOutput::write_scanline (int y, int z, TypeDesc format, const void *data,
         return false;
     }
 
-    if (m_spec.width >= 0)
-        y = (m_spec.height - y - 1);
-    int scanline_off = y * m_scanline_size;
-    fsetpos (m_fd, &m_image_start);
-    fseek (m_fd, scanline_off, SEEK_CUR);
+	//	RTT MOD: CVI:	this flips the image vertically, but slows down the image writing tremendously
+	if ( m_bFlipImage )
+	{ 
+		if (m_spec.width >= 0)
+			y = (m_spec.height - y - 1);
+		int scanline_off = y * m_scanline_size;
+		fsetpos (m_fd, &m_image_start);
+		fseek (m_fd, scanline_off, SEEK_CUR);
+	}
 
     std::vector<unsigned char> scratch;
     data = to_native_scanline (format, data, xstride, scratch);

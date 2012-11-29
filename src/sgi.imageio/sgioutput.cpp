@@ -71,6 +71,14 @@ SgiOutput::open (const std::string &name, const ImageSpec &spec,
     if (m_spec.format != TypeDesc::UINT8 && m_spec.format != TypeDesc::UINT16)
         m_spec.set_format (TypeDesc::UINT8);
 
+	//	RTT MOD: CVI	this flips the image vertically, but slows down the image writing tremendously,
+	//					so we flip it extern and write the flipped scanlines here, so its a little bit faster :)
+	const ImageIOParameter *flipParameter = m_spec.find_attribute("rtt:NoImageFlip",TypeDesc::INT);
+	if (flipParameter)
+	{
+		m_bFlipImage = (*static_cast<const int*>( flipParameter->data() ) == 1);
+	}
+
     return create_and_write_header();
 }
 
@@ -80,7 +88,11 @@ bool
 SgiOutput::write_scanline (int y, int z, TypeDesc format, const void *data,
                            stride_t xstride)
 {
-    y = m_spec.height - y - 1;
+	//	RTT MOD: CVI	this flips the image vertically, but slows down the image writing tremendously
+	if (m_bFlipImage) {
+		y = m_spec.height - y - 1;
+	}
+
     data = to_native_scanline (format, data, xstride, m_scratch);
 
     // In SGI format all channels are saved to file separately: firsty all
